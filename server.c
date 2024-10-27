@@ -9,8 +9,8 @@
 Request request_queue[MAX_QUEUE_SIZE];
 int queue_start = 0; 
 int queue_end = 0;
-pthread_mutex_t = queue_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t = queue_not_empty = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t queue_not_empty = PTHREAD_COND_INITIALIZER;
 
 
 void add_request(Request req) {
@@ -26,7 +26,7 @@ void* server_function(void *arg) {
     int request_count = 0;
 
     while (1) {
-        pthred_mutex_lock(&queue_mutex);
+        pthread_mutex_lock(&queue_mutex);
         while (queue_start == queue_end) pthread_cond_wait(&queue_not_empty, &queue_mutex);
         Request req = request_queue[queue_start];
         queue_start = (queue_start + 1) % MAX_QUEUE_SIZE;

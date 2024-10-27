@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <unistd.h>
 
+// estrutura para a pool de threads
 void* worker_function(void *arg) {
     Worker *worker = (Worker*) arg;
     while (1) {
@@ -18,7 +19,7 @@ void* worker_function(void *arg) {
             print_balance();
         }
 
-        worker->active = 0
+        worker->active = 0;
         pthread_cond_signal(&worker->cond);
         pthread_mutex_unlock(&worker->lock);
     }

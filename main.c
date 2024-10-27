@@ -22,7 +22,7 @@ int main() {
     for (int i = 0; i < MAX_WORKERS; i++) {
         workers[i].active = 0;
         pthread_mutex_init(&workers[i].lock, NULL);
-        pthread_cond_init(&workers[i.cond, NULL]);
+        pthread_cond_init(&workers[i].cond, NULL);
         pthread_create(&workers[i].thread, NULL, worker_function, &workers[i]);
     }
 

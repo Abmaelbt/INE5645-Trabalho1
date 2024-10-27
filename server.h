@@ -1,15 +1,11 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#define MAX_ACCOUNTS 10
-#define MAX_WORKERS 4
-#define MAX_QUEUE_SIZE 20
 #include <pthread.h>
 
-typedef struct {
-    int id;
-    float balance;
-} Account;
+#define MAX_ACCOUNTS 10
+#define MAX_WORKERS 4 // tamanho da pool de threads
+#define MAX_QUEUE_SIZE 20
 
 typedef enum {
     DEPOSIT,
@@ -32,11 +28,8 @@ typedef struct {
     pthread_cond_t cond;
 } Worker;
 
-void create_account(int id, float balance);
-void deposit(int id, float amount);
-void transfer(int from_id, int to_id, float amount);
-void print_balance();
-void add_request(Request req)
+
+void add_request(Request req);
 void* server_function(void *arg);
 void* worker_function(void *arg);
 
