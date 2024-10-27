@@ -12,9 +12,9 @@ void* worker_function(void *arg) {
 
         // TODO: talvez mudar as funcoes para PT/BR
         if (worker->request.type == DEPOSIT) { 
-            deposit(worker->request.account_id, worker->request.amount);
+            // chamar a funcao para deposito
         } else if (worker->request.type == TRANSFER) {
-            transfer(worker->request.account_id, worker->request.to_account_id, worker->request.amount);
+            // chamar a funcao para transferencia
         } else if (worker->request.type==GENERAL_BALANCE) {
             print_balance();
         }
