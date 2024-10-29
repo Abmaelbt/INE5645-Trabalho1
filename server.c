@@ -25,13 +25,14 @@ void* server_function(void *arg) {
     Worker *workers = (Worker*) arg;
     int request_count = 0;
 
-    while (1) {
+    while (1) { // loop infinito
         pthread_mutex_lock(&queue_mutex);
         while (queue_start == queue_end) pthread_cond_wait(&queue_not_empty, &queue_mutex);
         Request req = request_queue[queue_start];
         queue_start = (queue_start + 1) % MAX_QUEUE_SIZE;
         pthread_mutex_unlock(&queue_mutex);
 
+        // Despacha a requisição para uma thread trabalhadora livre
         for (int i = 0;i < MAX_WORKERS; i++) {
             pthread_mutex_lock(&workers[i].lock);
             if (!workers[i].active) {
@@ -44,6 +45,7 @@ void* server_function(void *arg) {
             pthread_mutex_unlock(&workers[i].lock);
         }
 
+        // a cada 10 operações de clientes, o servidor adiciona uma operação de balanço geral (c) na fila de requisições.
         request_count++;
         if (request_count % 10 == 0) {
             Request balance_request = {.type = GENERAL_BALANCE};

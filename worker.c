@@ -5,22 +5,23 @@
 
 // estrutura para a pool de threads
 void* worker_function(void *arg) {
-    Worker *worker = (Worker*) arg;
+    Worker *worker = (Worker*) arg; // recebe um ponteiro para a estrutura worker
     while (1) {
         pthread_mutex_lock(&worker->lock);
-        while (!worker->active) pthread_cond_wait(&worker->cond, &worker->lock);
+        while (!worker->active) pthread_cond_wait(&worker->cond, &worker->lock); // espera até ser ativado
 
-        // TODO: talvez mudar as funcoes para PT/BR
+        // chamar a funcao para deposito
         if (worker->request.type == DEPOSIT) { 
-            // chamar a funcao para deposito
+        // chamar a funcao para transferencia
         } else if (worker->request.type == TRANSFER) {
-            // chamar a funcao para transferencia
+        
+        // chamar a funcao para deposito
         } else if (worker->request.type==GENERAL_BALANCE) {
             print_balance();
         }
 
-        worker->active = 0;
+        worker->active = 0; // Marca o worker como inativo após o processamento
         pthread_cond_signal(&worker->cond);
-        pthread_mutex_unlock(&worker->lock);
+        pthread_mutex_unlock(&worker->lock);    
     }
 }

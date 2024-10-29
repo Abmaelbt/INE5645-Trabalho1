@@ -3,7 +3,6 @@
 
 #include <pthread.h>
 
-#define MAX_ACCOUNTS 10
 #define MAX_WORKERS 4 // tamanho da pool de threads
 #define MAX_QUEUE_SIZE 20
 

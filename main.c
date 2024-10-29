@@ -10,7 +10,6 @@
 #define MAX_REQUESTS 100
 #define POOL_SIZE 5
 #define SERVICE_TIME 5
-
 */
 
 int main() {
