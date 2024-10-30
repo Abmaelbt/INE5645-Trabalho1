@@ -12,10 +12,9 @@ void* worker_function(void *arg) {
 
         // chamar a funcao para deposito
         if (worker->request.type == DEPOSIT) { 
-        // chamar a funcao para transferencia
+            deposit(worker->request.account_id, worker->request.amount);
         } else if (worker->request.type == TRANSFER) {
-        
-        // chamar a funcao para deposito
+            transfer(worker->request.account_id, worker->request.to_account_id, worker->request.amount);
         } else if (worker->request.type==GENERAL_BALANCE) {
             print_balance();
         }

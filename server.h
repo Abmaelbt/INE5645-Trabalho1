@@ -27,7 +27,6 @@ typedef struct {
     pthread_cond_t cond;
 } Worker;
 
-
 void add_request(Request req);
 void* server_function(void *arg);
 void* worker_function(void *arg);

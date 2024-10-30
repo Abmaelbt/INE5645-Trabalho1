@@ -4,13 +4,8 @@
 #include "account.h"
 #include "server.h"
 #include <time.h>
+#include <unistd.h>
 
-/*
-#define NUM_CLIENTS 10
-#define MAX_REQUESTS 100
-#define POOL_SIZE 5
-#define SERVICE_TIME 5
-*/
 
 int main() {
     create_account(1, 1000.0);
@@ -34,6 +29,4 @@ int main() {
 
     return 0;
 }
-
-
 

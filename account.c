@@ -20,7 +20,15 @@ void create_account(int id, float balance) {
 // recebe um identificador de conta (um número inteiro positivo) e o valor de depósito (um número real, que pode ser positivo ou negativo).  
 // Note que esta operação pode ser executada tanto para depósitos quanto saques, dependendo se o valor de depósito é positivo ou negativo;
 void deposit(int id_deposito, float valor_deposito) {
-
+    usleep(100000); // simula o tempo de processamento
+    pthread_mutex_lock(&account_mutex);
+    for (int i; i < account_count; i++) {
+        if (accounts[i].id == id_deposito) {
+            accounts[i].balance += valor_deposito;
+            break;
+        }
+    }
+    pthread_mutex_unlock(&account_mutex);
 }
 
 // funcao para transferencia
@@ -28,8 +36,20 @@ void deposit(int id_deposito, float valor_deposito) {
 // valor de transferência, esta operação deve debitar o valor de transferência da conta
 // de origem e somar este valor na conta destino;
 void transfer(int conta_origem, int conta_destino, float valor_transferencia) {
-
-}
+    usleep(200000); // Simula o tempo de processamento
+    pthread_mutex_lock(&account_mutex);
+    Account *from_account = NULL;
+    Account *to_account = NULL;
+    for (int i = 0; i < account_count; i++) {
+        if (accounts[i].id == conta_origem) from_account = &accounts[i];
+        if (accounts[i].id == conta_destino) to_account = &accounts[i];
+    }
+    if (from_account && to_account && from_account->balance >= valor_transferencia) {
+        from_account->balance -= valor_transferencia;
+        to_account->balance += valor_transferencia;
+    }
+    pthread_mutex_unlock(&account_mutex);
+}   
 
 void print_balance() {
     usleep(300000); // simula o tempo de processamento

@@ -44,7 +44,7 @@ void* server_function(void *arg) {
             }
             pthread_mutex_unlock(&workers[i].lock);
         }
-
+    
         // a cada 10 operações de clientes, o servidor adiciona uma operação de balanço geral (c) na fila de requisições.
         request_count++;
         if (request_count % 10 == 0) {
