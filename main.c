@@ -7,7 +7,7 @@
 #include "server.h"
 #include <stdint.h>
 
-int NUM_CLIENTS = 4;            // Número de threads clientes
+int NUM_CLIENTS = 2;            // Número de threads clientes
 int MAX_REQUESTS = 20;          // Número máximo de requisições
 int POOL_SIZE = 5;              // Tamanho do pool de threads
 int CLIENT_SLEEP_TIME = 1000000; // Taxa de geração de novas requisições em milisegundos(1 seg)
