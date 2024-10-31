@@ -2,6 +2,7 @@
 #include "account.h"
 #include <pthread.h>
 #include <unistd.h>
+#include <stdio.h>
 
 // estrutura para a pool de threads
 void* worker_function(void *arg) {
@@ -11,11 +12,14 @@ void* worker_function(void *arg) {
         while (!worker->active) pthread_cond_wait(&worker->cond, &worker->lock); // espera até ser ativado
 
         // chamar a funcao para deposito
-        if (worker->request.type == DEPOSIT) { 
+        if (worker->request.type == DEPOSIT) {
+            printf("Worker processando depósito.\n");
             deposit(worker->request.account_id, worker->request.amount);
         } else if (worker->request.type == TRANSFER) {
+            printf("Worker processando transferência.\n");
             transfer(worker->request.account_id, worker->request.to_account_id, worker->request.amount);
         } else if (worker->request.type==GENERAL_BALANCE) {
+            printf("Worker calculando balanço geral.\n");
             print_balance();
         }
 

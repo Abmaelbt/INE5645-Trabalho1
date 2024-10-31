@@ -12,6 +12,7 @@ void create_account(int id, float balance) {
     pthread_mutex_lock(&account_mutex);
     accounts[account_count].id = id;
     accounts[account_count].balance = balance;
+    printf("Conta %d criada com saldo inicial: %.2f\n", id, balance);
     account_count++;
     pthread_mutex_unlock(&account_mutex);
 }
@@ -25,6 +26,7 @@ void deposit(int id_deposito, float valor_deposito) {
     for (int i; i < account_count; i++) {
         if (accounts[i].id == id_deposito) {
             accounts[i].balance += valor_deposito;
+            printf("Depósito de %.2f realizado na conta %d. Novo saldo: %.2f\n", valor_deposito, id_deposito, accounts[i].balance);
             break;
         }
     }
@@ -47,6 +49,8 @@ void transfer(int conta_origem, int conta_destino, float valor_transferencia) {
     if (from_account && to_account && from_account->balance >= valor_transferencia) {
         from_account->balance -= valor_transferencia;
         to_account->balance += valor_transferencia;
+        printf("Transferência de %.2f da conta %d para a conta %d. Saldos atualizados: %.2f (origem), %.2f (destino)\n",
+                valor_transferencia, conta_origem, conta_destino, from_account->balance, to_account->balance);
     }
     pthread_mutex_unlock(&account_mutex);
 }   

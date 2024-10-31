@@ -3,8 +3,7 @@
 
 #include <pthread.h>
 
-#define MAX_WORKERS 4 // tamanho da pool de threads
-#define MAX_QUEUE_SIZE 20
+#define MAX_QUEUE_SIZE 20 // Tamanho da fila de requisições, sem duplicidade
 
 typedef enum {
     DEPOSIT,
