@@ -26,10 +26,10 @@ void deposit(int id_deposito, float valor_deposito) {
     for (int i; i < account_count; i++) {
         if (accounts[i].id == id_deposito) {
             accounts[i].balance += valor_deposito;
-            printf("Depósito de %.2f realizado na conta %d. Novo saldo: %.2f\n", valor_deposito, id_deposito, accounts[i].balance);
             break;
         }
     }
+    printf("Depositado: %.2f na conta: %d", valor_deposito, id_deposito);
     pthread_mutex_unlock(&account_mutex);
 }
 
