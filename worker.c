@@ -1,36 +1,49 @@
-#include "server.h"
-#include "account.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
-#include <stdio.h>
+#include "server.h"
+#include "account.h"
 
-extern int server_running;
-
-// estrutura para a pool de threads
-void* worker_function(void *arg) {
-    Worker *worker = (Worker*) arg; // recebe um ponteiro para a estrutura worker
-
-    while (1) {
-        pthread_mutex_lock(&worker->lock);
-
-        while (!worker->active) {
-            pthread_cond_wait(&worker->cond, &worker->lock); // Espera até ser ativado
-        } 
-
-        // chamar a funcao para deposito
-        if (worker->request.type == DEPOSIT) {
-            printf("Worker processando depósito.\n");
-            deposit(worker->request.account_id, worker->request.amount);
-        } else if (worker->request.type == TRANSFER) {
-            printf("Worker processando transferência.\n");
-            transfer(worker->request.account_id, worker->request.to_account_id, worker->request.amount);
-        } else if (worker->request.type==GENERAL_BALANCE) {
-            printf("Worker calculando balanço geral.\n");
-            print_balance();
+// Função das threads trabalhadoras
+void* worker_thread(void* arg) {
+    int thread_id = *((int*)arg);
+    printf("Thread trabalhadora %d iniciada.\n", thread_id);
+    while (!stop_server) {
+        Request req = dequeue();
+        if (req.operation == 1) { // Depósito
+            pthread_mutex_lock(&accounts[req.src_account - 1].lock);
+            accounts[req.src_account - 1].balance += req.amount;
+            printf("Thread %d: Depositou %.2f na conta %d. Novo saldo: %.2f\n", 
+                   thread_id, req.amount, req.src_account, accounts[req.src_account - 1].balance);
+            pthread_mutex_unlock(&accounts[req.src_account - 1].lock);
+            usleep(500000); // Simula tempo de processamento
+        } else if (req.operation == 2) { // Transferência
+            pthread_mutex_lock(&accounts[req.src_account - 1].lock);
+            pthread_mutex_lock(&accounts[req.dest_account - 1].lock);
+            if (accounts[req.src_account - 1].balance >= req.amount) {
+                accounts[req.src_account - 1].balance -= req.amount;
+                accounts[req.dest_account - 1].balance += req.amount;
+                printf("Thread %d: Transferiu %.2f da conta %d para %d. Novos saldos: %.2f, %.2f\n",
+                       thread_id, req.amount, req.src_account, req.dest_account,
+                       accounts[req.src_account - 1].balance, accounts[req.dest_account - 1].balance);
+            } else {
+                printf("Thread %d: Transferência falhou da conta %d: Saldo insuficiente.\n", 
+                       thread_id, req.src_account);
+            }
+            pthread_mutex_unlock(&accounts[req.dest_account - 1].lock);
+            pthread_mutex_unlock(&accounts[req.src_account - 1].lock);
+            usleep(500000); // Simula tempo de processamento
+        } else if (req.operation == 3) { // Balanço
+            printf("Thread %d: Relatório de balanço:\n", thread_id);
+            for (int i = 0; i < MAX_ACCOUNTS; i++) {
+                pthread_mutex_lock(&accounts[i].lock);
+                printf("Thread %d: Conta %d: %.2f\n", thread_id, accounts[i].account_id, accounts[i].balance);
+                pthread_mutex_unlock(&accounts[i].lock);
+            }
+            usleep(500000); // Simula tempo de processamento
         }
-
-        worker->active = 0; // Marca o worker como inativo após o processamento
-        pthread_cond_signal(&worker->cond);
-        pthread_mutex_unlock(&worker->lock);    
     }
+    printf("Thread trabalhadora %d encerrando.\n", thread_id);
+    return NULL;
 }

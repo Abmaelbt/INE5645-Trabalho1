@@ -1,33 +1,20 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <pthread.h>
+#include "account.h"
 
-#define MAX_QUEUE_SIZE 9     // Tamanho da fila de requisições, sem duplicidade
+extern int POOL_SIZE;
 
-typedef enum {
-    DEPOSIT,
-    TRANSFER,
-    GENERAL_BALANCE
-} RequestType;
 
-typedef struct {
-    RequestType type;
-    int account_id;
-    int to_account_id;
-    float amount;
-} Request;
+void init_queue();
+void enqueue(Request req);
+Request dequeue();
+void* server_thread_func(void* arg);
 
-typedef struct {
-    pthread_t thread;
-    Request request;
-    int active;
-    pthread_mutex_t lock;
-    pthread_cond_t cond;
-} Worker;
+extern Account accounts[MAX_ACCOUNTS];
+extern RequestQueue queue;
+extern pthread_t thread_pool[POOL_SIZE];
+extern pthread_t server_thread;
+extern int stop_server;
 
-void add_request(Request req);
-void* server_function(void *arg);
-void* worker_function(void *arg);
-
-#endif
+#endif // SERVER_H

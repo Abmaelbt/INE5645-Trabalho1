@@ -1,16 +1,35 @@
 #ifndef ACCOUNT_H
 #define ACCOUNT_H
 
-#define MAX_ACCOUNTS 5
+#include <pthread.h>
+
+extern int MAX_QUEUE_SIZE;
+
 
 typedef struct {
-    int id;
+    int account_id;
     float balance;
+    pthread_mutex_t lock;
 } Account;
 
-void create_account(int id, float balance);
-void deposit(int id, float amount);
-void transfer(int from_id, int to_id, float amount);
-void print_balance();
+typedef struct {
+    int operation; // 1: deposito, 2: transferencia, 3: saldo
+    int src_account;
+    int dest_account;
+    float amount;
+} Request;
 
-#endif
+#define MAX_ACCOUNTS 2
+
+typedef struct {
+    Request requests[MAX_QUEUE_SIZE];
+    int front;
+    int rear;
+    int size;
+    pthread_mutex_t lock;
+    pthread_cond_t cond;
+} RequestQueue;
+
+void init_accounts(Account accounts[], int max_accounts);
+
+#endif // ACCOUNT_H
