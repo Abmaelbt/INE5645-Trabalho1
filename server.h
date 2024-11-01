@@ -3,7 +3,7 @@
 
 #include <pthread.h>
 
-#define MAX_QUEUE_SIZE 5 // Tamanho da fila de requisições, sem duplicidade
+#define MAX_QUEUE_SIZE 9     // Tamanho da fila de requisições, sem duplicidade
 
 typedef enum {
     DEPOSIT,

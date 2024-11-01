@@ -4,12 +4,18 @@
 #include <unistd.h>
 #include <stdio.h>
 
+extern int server_running;
+
 // estrutura para a pool de threads
 void* worker_function(void *arg) {
     Worker *worker = (Worker*) arg; // recebe um ponteiro para a estrutura worker
+
     while (1) {
         pthread_mutex_lock(&worker->lock);
-        while (!worker->active) pthread_cond_wait(&worker->cond, &worker->lock); // espera até ser ativado
+
+        while (!worker->active) {
+            pthread_cond_wait(&worker->cond, &worker->lock); // Espera até ser ativado
+        } 
 
         // chamar a funcao para deposito
         if (worker->request.type == DEPOSIT) {

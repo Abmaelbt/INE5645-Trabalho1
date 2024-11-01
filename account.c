@@ -21,7 +21,7 @@
     // recebe um identificador de conta (um número inteiro positivo) e o valor de depósito (um número real, que pode ser positivo ou negativo).  
     // Note que esta operação pode ser executada tanto para depósitos quanto saques, dependendo se o valor de depósito é positivo ou negativo;
     void deposit(int id_deposito, float valor_deposito) {
-        usleep(100000); // Simula o tempo de processamento
+        usleep(500000); // Simula o tempo de processamento
         pthread_mutex_lock(&account_mutex);  // Protege a operação na conta
 
         for (int i = 0; i < account_count; i++) {

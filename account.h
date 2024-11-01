@@ -1,7 +1,7 @@
 #ifndef ACCOUNT_H
 #define ACCOUNT_H
 
-#define MAX_ACCOUNTS 2
+#define MAX_ACCOUNTS 5
 
 typedef struct {
     int id;
