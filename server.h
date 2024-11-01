@@ -3,18 +3,29 @@
 
 #include "account.h"
 
-extern int POOL_SIZE;
+// Move macro definitions here
+#define MAX_ACCOUNTS 10
+#define MAX_QUEUE_SIZE 20
+#define POOL_SIZE 10 // numero de threads
+#define MAX_REQUESTS 100 // maximo de requisicoes
 
+typedef struct {
+    Request requests[MAX_QUEUE_SIZE];
+    int front;
+    int rear;
+    int size;
+    pthread_mutex_t lock;
+    pthread_cond_t cond;
+} RequestQueue;
 
-void init_queue();
+extern Account accounts[];
+extern RequestQueue queue;
+extern int stop_server;
+
+// Function declarations
 void enqueue(Request req);
 Request dequeue();
+void* worker_thread(void* arg);
 void* server_thread_func(void* arg);
-
-extern Account accounts[MAX_ACCOUNTS];
-extern RequestQueue queue;
-extern pthread_t thread_pool[POOL_SIZE];
-extern pthread_t server_thread;
-extern int stop_server;
 
 #endif // SERVER_H

@@ -2,20 +2,36 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <string.h>
+#include <time.h>
+
+
 #include "server.h"
 #include "account.h"
 
-#define MAX_ACCOUNTS 2
-#define MAX_QUEUE_SIZE 20
-#define POOL_SIZE 2 // numero de threads
-#define MAX_REQUESTS 40 // maximo de requisicoes
-
-// Contas e fila de requisições
 Account accounts[MAX_ACCOUNTS];
 RequestQueue queue;
 pthread_t thread_pool[POOL_SIZE];
 pthread_t server_thread;
 int stop_server = 0;
+
+// Função para inicializar as contas
+void init_accounts() {
+    for (int i = 0; i < MAX_ACCOUNTS; i++) {
+        accounts[i].account_id = i + 1;
+        accounts[i].balance = 1000.0; // Saldo inicial
+        pthread_mutex_init(&accounts[i].lock, NULL);
+    }
+}
+
+// Função para inicializar a fila de requisições
+void init_queue() {
+    queue.front = 0;
+    queue.rear = 0;
+    queue.size = 0;
+    pthread_mutex_init(&queue.lock, NULL);
+    pthread_cond_init(&queue.cond, NULL);
+}
 
 // Função principal
 int main() {

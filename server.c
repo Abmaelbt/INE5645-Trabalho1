@@ -1,32 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
-#include <unistd.h>
-#include <time.h>
 #include "server.h"
 #include "account.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
 
-extern int MAX_QUEUE_SIZE;
-extern int POOL_SIZE;
-extern int MAX_REQUESTS;
 
-// Função para inicializar as contas
-void init_accounts() {
-    for (int i = 0; i < MAX_ACCOUNTS; i++) {
-        accounts[i].account_id = i + 1;
-        accounts[i].balance = 1000.0; // Saldo inicial
-        pthread_mutex_init(&accounts[i].lock, NULL);
-    }
-}
-
-// Função para inicializar a fila de requisições
-void init_queue() {
-    queue.front = 0;
-    queue.rear = 0;
-    queue.size = 0;
-    pthread_mutex_init(&queue.lock, NULL);
-    pthread_cond_init(&queue.cond, NULL);
-}
 
 // Função para enfileirar uma requisição
 void enqueue(Request req) {

@@ -3,33 +3,17 @@
 
 #include <pthread.h>
 
-extern int MAX_QUEUE_SIZE;
-
-
 typedef struct {
     int account_id;
-    float balance;
-    pthread_mutex_t lock;
+    double balance;
+    pthread_mutex_t lock; // Mutex para proteção de concorrência
 } Account;
 
 typedef struct {
-    int operation; // 1: deposito, 2: transferencia, 3: saldo
-    int src_account;
-    int dest_account;
-    float amount;
+    int operation; // 1: depósito, 2: transferência, 3: balanço
+    int src_account; // Conta de origem
+    int dest_account; // Conta de destino (se aplicável)
+    double amount; // Montante para depósito ou transferência
 } Request;
-
-#define MAX_ACCOUNTS 2
-
-typedef struct {
-    Request requests[MAX_QUEUE_SIZE];
-    int front;
-    int rear;
-    int size;
-    pthread_mutex_t lock;
-    pthread_cond_t cond;
-} RequestQueue;
-
-void init_accounts(Account accounts[], int max_accounts);
 
 #endif // ACCOUNT_H

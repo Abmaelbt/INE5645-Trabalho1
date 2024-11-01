@@ -1,12 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
-#include <unistd.h>
 #include "server.h"
 #include "account.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 // Função das threads trabalhadoras
-void* worker_thread(void* arg) {
+void* worker_thread(void* arg) { // No longer static
     int thread_id = *((int*)arg);
     printf("Thread trabalhadora %d iniciada.\n", thread_id);
     while (!stop_server) {
