@@ -1,80 +1,56 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <time.h>
 #include <unistd.h>
-#include "account.h"
+#include <string.h>
+#include <time.h>
+
+
 #include "server.h"
-#include <stdint.h>
+#include "account.h"
 
-int NUM_CLIENTS = 5;            // Número de threads clientes
-int MAX_REQUESTS = 30;          // Número máximo de requisições. Criterio de parada.
-int POOL_SIZE = 10;             // Numero de threads workers no pool
-int CLIENT_SLEEP_TIME = 500000; // Taxa de geração de novas requisições em milisegundos
-int server_running = 1; // variavel para informar se o servidor ta rodando
+Account accounts[MAX_ACCOUNTS];
+RequestQueue queue;
+pthread_t thread_pool[POOL_SIZE];
+pthread_t server_thread;
+int stop_server = 0;
 
-// Função de cada cliente que gera requisições aleatórias
-void* client_function(void *arg) {
-    srand(time(NULL) + (intptr_t)arg); // Seed para números aleatórios
-    int request_count = 0;
-    while (request_count < MAX_REQUESTS && server_running) {
-        Request req;
-        int rand_op = rand() % 2;
+// Função para inicializar as contas
 
-        if (rand_op == 0) { // Depósito
-            req.type = DEPOSIT;
-            req.account_id = rand() % MAX_ACCOUNTS + 1;
 
-            //req.amount = (rand() % 1000) + 1; Talvez excluir
-            if (rand() % 2 == 0) {
-                req.amount = (rand() % 1000) + 1; // Depósito 
-            } else {
-                req.amount = -((rand() % 500) + 1); // Saque 
-            }
-        } else { // Transferência
-            req.type = TRANSFER;
-            req.account_id = rand() % MAX_ACCOUNTS + 1;
-            do {
-                req.to_account_id = rand() % MAX_ACCOUNTS + 1;
-            } while (req.to_account_id == req.account_id);
-            req.amount = (rand() % 500) + 1;
-        }
-
-        add_request(req); // Adiciona a requisição na fila
-        usleep(CLIENT_SLEEP_TIME); // Espera entre requisições
-        request_count++;
-    }
-    return NULL;
+// Função para inicializar a fila de requisições
+void init_queue() {
+    queue.front = 0;
+    queue.rear = 0;
+    queue.size = 0;
+    pthread_mutex_init(&queue.lock, NULL);
+    pthread_cond_init(&queue.cond, NULL);
 }
 
+// Função principal
 int main() {
-    // contas com base no valor de MAX_ACCOUNTS
-    for (int i = 1; i <= MAX_ACCOUNTS; i++) {
-        create_account(i, 1000.0 * i); // Exemplo de saldo inicial que varia por conta
-    }
+    init_accounts();
+    init_queue();
 
-    pthread_t server_thread;
-    Worker workers[POOL_SIZE];
+    printf("Iniciando threads trabalhadoras...\n");
+    int thread_ids[POOL_SIZE];
     for (int i = 0; i < POOL_SIZE; i++) {
-        workers[i].active = 0;
-        pthread_mutex_init(&workers[i].lock, NULL);
-        pthread_cond_init(&workers[i].cond, NULL);
-        pthread_create(&workers[i].thread, NULL, worker_function, &workers[i]);
+        thread_ids[i] = i + 1; // Atribui IDs para as threads
+        pthread_create(&thread_pool[i], NULL, worker_thread, &thread_ids[i]);
     }
+    pthread_create(&server_thread, NULL, server_thread_func, NULL);
 
-    pthread_create(&server_thread, NULL, server_function, (void*)&(struct { Worker* workers; int pool_size; }) { workers, POOL_SIZE });
-
-    // Inicia as threads clientes
-    pthread_t clients[NUM_CLIENTS];
-    for (int i = 0; i < NUM_CLIENTS; i++) {
-        pthread_create(&clients[i], NULL, client_function, (void *)(intptr_t)i);
-    }
     pthread_join(server_thread, NULL);
     for (int i = 0; i < POOL_SIZE; i++) {
-        pthread_join(workers[i].thread, NULL);
+        pthread_join(thread_pool[i], NULL);
     }
-    for (int i = 0; i < NUM_CLIENTS; i++) {
-        pthread_join(clients[i], NULL);
+
+    for (int i = 0; i < MAX_ACCOUNTS; i++) {
+        pthread_mutex_destroy(&accounts[i].lock);
     }
+    pthread_mutex_destroy(&queue.lock);
+    pthread_cond_destroy(&queue.cond);
+
+    printf("Todas as threads foram encerradas. Servidor finalizado.\n");
     return 0;
 }

@@ -1,16 +1,21 @@
 #ifndef ACCOUNT_H
 #define ACCOUNT_H
 
-#define MAX_ACCOUNTS 5
+#include <pthread.h>
 
 typedef struct {
-    int id;
-    float balance;
+    int account_id;
+    double balance;
+    pthread_mutex_t lock; // Mutex para proteção de concorrência
 } Account;
 
-void create_account(int id, float balance);
-void deposit(int id, float amount);
-void transfer(int from_id, int to_id, float amount);
-void print_balance();
+typedef struct {
+    int operation; // 1: depósito, 2: transferência, 3: balanço
+    int src_account;  // Conta de origem
+    int dest_account; // Conta de destino
+    double amount; // Montante para depósito ou transferência
+} Request;
 
-#endif
+#endif // ACCOUNT_H
+
+void init_accounts();

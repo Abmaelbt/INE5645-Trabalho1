@@ -1,74 +1,79 @@
 #include "server.h"
 #include "account.h"
-#include <pthread.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
-Request request_queue[MAX_QUEUE_SIZE];
-int queue_start = 0; 
-int queue_end = 0;
-pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t queue_not_empty = PTHREAD_COND_INITIALIZER;
 
-// Recebido de main.c
-extern int MAX_REQUESTS; 
-extern int server_running; 
 
-void add_request(Request req) {
-    pthread_mutex_lock(&queue_mutex);
-    request_queue[queue_end] = req;
-    queue_end = (queue_end + 1) % MAX_QUEUE_SIZE;
-    pthread_cond_signal(&queue_not_empty);
-    pthread_mutex_unlock(&queue_mutex);
+// Função para enfileirar uma requisição
+void enqueue(Request req) {
+    pthread_mutex_lock(&queue.lock);
+    while (queue.size == MAX_QUEUE_SIZE) {
+        pthread_cond_wait(&queue.cond, &queue.lock);
+    }
+    queue.requests[queue.rear] = req;
+    queue.rear = (queue.rear + 1) % MAX_QUEUE_SIZE;
+    queue.size++;
+    pthread_cond_signal(&queue.cond);
+    pthread_mutex_unlock(&queue.lock);
 }
 
-void* server_function(void *arg) {
-    struct { Worker* workers; int pool_size; }* args = arg;
-    Worker* workers = args->workers;
-    int pool_size = args->pool_size;
-    int request_count = 0;
-
-    printf("Servidor iniciado com %d threads no pool.\n", pool_size);
-    
-    while (request_count < MAX_REQUESTS) { //criterio de parada. Roda até atingir o numero maximo de requisições
-        pthread_mutex_lock(&queue_mutex);
-        while (queue_start == queue_end) {
-            pthread_cond_wait(&queue_not_empty, &queue_mutex);
-        }
-
-        Request req = request_queue[queue_start];
-        queue_start = (queue_start + 1) % MAX_QUEUE_SIZE;
-        pthread_mutex_unlock(&queue_mutex);
-
-        int worker_assigned = 0;
-        for (int i = 0; i < pool_size; i++) {
-            pthread_mutex_lock(&workers[i].lock);
-            if (!workers[i].active) {
-                workers[i].request = req;
-                workers[i].active = 1;
-                pthread_cond_signal(&workers[i].cond);
-                printf("Request type %d processado por worker %d.\n", req.type, i);
-                worker_assigned = 1;
-                pthread_mutex_unlock(&workers[i].lock);
-                break;
-            }
-            pthread_mutex_unlock(&workers[i].lock);
-        }
-
-        if (!worker_assigned) {
-            printf("Nenhum worker disponível. Requisição será reprocessada.\n");
-            add_request(req); // Recoloca a requisição na fila
-        }
-
-        request_count++;
-
-        if (request_count % 10 == 0) {
-            Request balance_request = {.type = GENERAL_BALANCE};
-            add_request(balance_request);
-        }
+// Função para desenfileirar uma requisição
+Request dequeue() {
+    Request req;
+    pthread_mutex_lock(&queue.lock);
+    while (queue.size == 0 && !stop_server) {
+        pthread_cond_wait(&queue.cond, &queue.lock);
     }
-    server_running = 0;
-    printf("Servidor finalizou após processar %d requests.\n", request_count);
+    if (stop_server) {
+        pthread_mutex_unlock(&queue.lock);
+        exit(0);
+    }
+    req = queue.requests[queue.front];
+    queue.front = (queue.front + 1) % MAX_QUEUE_SIZE;
+    queue.size--;
+    pthread_cond_signal(&queue.cond);
+    pthread_mutex_unlock(&queue.lock);
+    return req;
+}
+
+// Função da thread do servidor
+void* server_thread_func(void* arg) {
+    printf("Thread do servidor iniciada.\n");
+    srand(time(NULL));
+    for (int i = 0; i < MAX_REQUESTS; i++) { 
+        Request req;
+        req.operation = rand() % 2 + 1; // Seleciona aleatoriamente depósito (1) ou transferência (2)
+        req.src_account = rand() % MAX_ACCOUNTS + 1;
+
+        if (req.operation == 1) { // Depósito
+            req.amount = (rand() % 200) - 100; // Quantia aleatória entre -100 e +100
+        } else { // Transferência
+            req.amount = rand() % 100 + 1; // Quantia aleatória entre 1 e 100
+            req.dest_account = rand() % MAX_ACCOUNTS + 1;
+            while (req.src_account == req.dest_account) { // Garante contas diferentes
+                req.dest_account = rand() % MAX_ACCOUNTS + 1;
+            }
+        }
+        enqueue(req);
+
+        if (i % 10 == 0) { // A cada 10 requisições, enfileira um relatório de balanço
+            Request balance_req;
+            balance_req.operation = 3;
+            balance_req.src_account = -1;
+            balance_req.dest_account = -1;
+            balance_req.amount = 0;
+            enqueue(balance_req);
+        }
+
+        usleep(100000); // Pausa para controlar a taxa de requisições
+    }
+    stop_server = 1; // Sinaliza para as threads pararem
+    for (int i = 0; i < POOL_SIZE; i++) {
+        enqueue((Request){.operation = 0}); // Enfileira sinal de parada
+    }
+    printf("Thread do servidor encerrando.\n");
     return NULL;
 }
