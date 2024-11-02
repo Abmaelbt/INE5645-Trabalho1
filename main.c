@@ -16,13 +16,7 @@ pthread_t server_thread;
 int stop_server = 0;
 
 // Função para inicializar as contas
-void init_accounts() {
-    for (int i = 0; i < MAX_ACCOUNTS; i++) {
-        accounts[i].account_id = i + 1;
-        accounts[i].balance = 1000.0; // Saldo inicial
-        pthread_mutex_init(&accounts[i].lock, NULL);
-    }
-}
+
 
 // Função para inicializar a fila de requisições
 void init_queue() {
@@ -51,7 +45,6 @@ int main() {
         pthread_join(thread_pool[i], NULL);
     }
 
-    // Limpeza
     for (int i = 0; i < MAX_ACCOUNTS; i++) {
         pthread_mutex_destroy(&accounts[i].lock);
     }

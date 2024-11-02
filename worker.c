@@ -5,18 +5,19 @@
 #include <unistd.h>
 
 // Função das threads trabalhadoras
-void* worker_thread(void* arg) { // No longer static
+void* worker_thread(void* arg) { 
     int thread_id = *((int*)arg);
     printf("Thread trabalhadora %d iniciada.\n", thread_id);
     while (!stop_server) {
         Request req = dequeue();
         if (req.operation == 1) { // Depósito
-            pthread_mutex_lock(&accounts[req.src_account - 1].lock);
-            accounts[req.src_account - 1].balance += req.amount;
+            pthread_mutex_lock(&accounts[req.src_account - 1].lock); // trava o acesso a conta de origem para evitar condicao de corrida
+            accounts[req.src_account - 1].balance += req.amount; // atualiza o saldo
             printf("Thread %d: Depositou %.2f na conta %d. Novo saldo: %.2f\n", 
                    thread_id, req.amount, req.src_account, accounts[req.src_account - 1].balance);
             pthread_mutex_unlock(&accounts[req.src_account - 1].lock);
-            usleep(500000); // Simula tempo de processamento
+            usleep(500000); // Simula tempo de processamento em milisegundos
+
         } else if (req.operation == 2) { // Transferência
             pthread_mutex_lock(&accounts[req.src_account - 1].lock);
             pthread_mutex_lock(&accounts[req.dest_account - 1].lock);
@@ -32,7 +33,7 @@ void* worker_thread(void* arg) { // No longer static
             }
             pthread_mutex_unlock(&accounts[req.dest_account - 1].lock);
             pthread_mutex_unlock(&accounts[req.src_account - 1].lock);
-            usleep(500000); // Simula tempo de processamento
+            usleep(500000); 
         } else if (req.operation == 3) { // Balanço
             printf("Thread %d: Relatório de balanço:\n", thread_id);
             for (int i = 0; i < MAX_ACCOUNTS; i++) {
@@ -40,7 +41,7 @@ void* worker_thread(void* arg) { // No longer static
                 printf("Thread %d: Conta %d: %.2f\n", thread_id, accounts[i].account_id, accounts[i].balance);
                 pthread_mutex_unlock(&accounts[i].lock);
             }
-            usleep(500000); // Simula tempo de processamento
+            usleep(500000); 
         }
     }
     printf("Thread trabalhadora %d encerrando.\n", thread_id);

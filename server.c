@@ -45,17 +45,17 @@ void* server_thread_func(void* arg) {
     srand(time(NULL));
     for (int i = 0; i < MAX_REQUESTS; i++) { 
         Request req;
-        req.operation = rand() % 2 + 1; // Seleciona aleatoriamente depósito ou transferência
+        req.operation = rand() % 2 + 1; // Seleciona aleatoriamente depósito (1) ou transferência (2)
         req.src_account = rand() % MAX_ACCOUNTS + 1;
-        req.amount = (rand() % 200) - 100; // Quantia aleatória entre -100 e +100
 
-        if (req.operation == 2) { // Transferência requer uma conta de destino
+        if (req.operation == 1) { // Depósito
+            req.amount = (rand() % 200) - 100; // Quantia aleatória entre -100 e +100
+        } else { // Transferência
+            req.amount = rand() % 100 + 1; // Quantia aleatória entre 1 e 100
             req.dest_account = rand() % MAX_ACCOUNTS + 1;
             while (req.src_account == req.dest_account) { // Garante contas diferentes
                 req.dest_account = rand() % MAX_ACCOUNTS + 1;
             }
-        } else {
-            req.dest_account = req.src_account; // Configura para a mesma conta nos depósitos
         }
         enqueue(req);
 
