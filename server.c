@@ -68,7 +68,7 @@ void* server_thread_func(void* arg) {
             enqueue(balance_req);
         }
 
-        usleep(100000); // Pausa para controlar a taxa de requisições
+        usleep(100000); // Pausa para controlar a taxa de requisições em milisegundos
     }
     stop_server = 1; // Sinaliza para as threads pararem
     for (int i = 0; i < POOL_SIZE; i++) {

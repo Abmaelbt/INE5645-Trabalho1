@@ -19,3 +19,6 @@ typedef struct {
 #endif // ACCOUNT_H
 
 void init_accounts();
+void deposit(int account_id, float amount, int thread_id);
+void transfer(int src_account_id, int dest_account_id, float amount, int thread_id);
+void balance_report(int thread_id);

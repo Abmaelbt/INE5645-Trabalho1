@@ -32,13 +32,14 @@ int main() {
     init_accounts();
     init_queue();
 
+    // talvez essa função deveria ter ido pro worker.c (Revisar)
     printf("Iniciando threads trabalhadoras...\n");
     int thread_ids[POOL_SIZE];
     for (int i = 0; i < POOL_SIZE; i++) {
         thread_ids[i] = i + 1; // Atribui IDs para as threads
-        pthread_create(&thread_pool[i], NULL, worker_thread, &thread_ids[i]);
+        pthread_create(&thread_pool[i], NULL, worker_thread, &thread_ids[i]); // cria a thread sem atributos
     }
-    pthread_create(&server_thread, NULL, server_thread_func, NULL);
+    pthread_create(&server_thread, NULL, server_thread_func, NULL); // cria a 
 
     pthread_join(server_thread, NULL);
     for (int i = 0; i < POOL_SIZE; i++) {

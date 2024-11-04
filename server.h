@@ -3,9 +3,9 @@
 
 #include "account.h"
 
-#define MAX_ACCOUNTS 10 // numero de contas
-#define MAX_QUEUE_SIZE 20 // tamanho da fila de requisicoes
-#define POOL_SIZE 4 // numero de threads
+#define MAX_ACCOUNTS 50 // numero de contas
+#define MAX_QUEUE_SIZE 2 // tamanho da fila de requisicoes
+#define POOL_SIZE 8     // numero de threads
 #define MAX_REQUESTS 50 // maximo de requisicoes
 
 typedef struct {
